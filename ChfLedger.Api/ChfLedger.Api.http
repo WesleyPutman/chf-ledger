@@ -1,0 +1,6 @@
+@ChfLedger.Api_HostAddress = http://localhost:5186
+
+GET {{ChfLedger.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

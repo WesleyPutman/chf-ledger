@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ChfLedger.Api/ChfLedger.Api.csproj" />
+  <Project Path="ChfLedger.Domain/ChfLedger.Domain.csproj" />
+  <Project Path="ChfLedger.Tests/ChfLedger.Tests.csproj" />
+</Solution>
