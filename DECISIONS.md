@@ -99,6 +99,17 @@
 
 **Conséquences** — Un `Id` dit *lequel*, une séquence dit *dans quel ordre* ; ils coïncident ici mais pas partout. Reprise de données historiques, écritures concurrentes sur plusieurs serveurs ou numérotation par compte imposeront d'ajouter un vrai champ `Sequence`.
 
+## ADR-010 — Persistance des opérations via un constructeur privé pour EF
+*Date : 2026-09-09 — Statut : acceptée*
+
+**Contexte** — Quand EF crée l'objet `Operation`, il le fait avant d'avoir eu les mouvements qui sont justement exigés
+
+**Décision** — Utilisation d'un constructeur privé au sein du Domaine en parallèle du constructeur public utilisé par tout le code métier. ça implique du code en plus dans le même fichier qu'il faut documenter car utilisé nulle part à part pour EF, qui s'en sert pour créer l'objet. La collection, elle, est stockée dans un champ privé qu'EF remplit ensuite.
+
+**Alternatives écartées** — Ajout d'un constructeur sans params mais ça implique que l'invariant n'est pas garanti. La création dans l'API de deux fichiers d'entités qu'EF mappe comme il veut, mais ça implique une répartition dans d'autres fichiers qui peut compromettre la justesse des données si on a des oublis.
+
+**Conséquences** — Le domaine contient un constructeur privé en plus et un champ de stockage qui n'est valable que pour EF et qui doit surtout être documenté pour pas être oublié dans le futur. Les objets qui passent par ce dernier ne sont pas vérifiés par l'invariant pour éviter la redondance (ce qui a été vérifié pour l'entrée n'a pas besoin d'être revérifié). Mais ça implique que si la base est corrompue, qu'une injection ait changé une valeur, le domaine chargera des opérations "fausses" qui ne vérifient pas du tout l'invariant sans s'en apercevoir
+
 ## Modèle d'entrée
 
 ```markdown
