@@ -110,6 +110,16 @@
 
 **Conséquences** — Le domaine contient un constructeur privé en plus et un champ de stockage qui n'est valable que pour EF et qui doit surtout être documenté pour pas être oublié dans le futur. Les objets qui passent par ce dernier ne sont pas vérifiés par l'invariant pour éviter la redondance (ce qui a été vérifié pour l'entrée n'a pas besoin d'être revérifié). Mais ça implique que si la base est corrompue, qu'une injection ait changé une valeur, le domaine chargera des opérations "fausses" qui ne vérifient pas du tout l'invariant sans s'en apercevoir
 
+## ADR-011 — Choix de modélisation de Mouvement
+*Date : 2026-09-10 — Statut : acceptée*
+
+**Contexte** — Pour créer la Migration j'ai du décider de comment EF devait traduire un mouvement pour son utilisation
+
+**Décision** — Dans mon cas j'ai appris que `shadow property` existait. Choix gardé qui permet de donner une clé unique du côté modèle et pas dans la classe C#. Mais ça permet de faire des requêtes simple à lire et qui donnent l'intention au coup d'oeil. La configuration vit dans `OnModelCreating` 
+
+**Alternatives écartées** — Ajouter l'id dans la classe car inutile dans notre contexte d'utilisation et qui nous force à mettre un Id dans la consttruction d'un mouvement. Sinon l'`owned entity` était une piste mais demandait des requêtes plus complexes qui demandent d'applatir une operation pour trouver ses mouvements, hors on demande tous les mouvements pour trouver un solde par exemple.
+
+**Conséquences** — Je dois documenter car il sera impossible de savoir que les mouvements ont un ID et qu'ils sont pas appelables dans la classe car pas le besoin.
 ## Modèle d'entrée
 
 ```markdown
