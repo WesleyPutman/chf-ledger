@@ -2,6 +2,7 @@ namespace ChfLedger.Domain;
 
 public class Operation
 {
+    public int Id { get; private set; }
 	public IReadOnlyList<Mouvement> Mouvements => _mouvements;
 	private readonly List<Mouvement> _mouvements = new();
 	// Constructeur privé dédié à l'usage d'EF afin de ne pas dépendre des Mouvements à la création de l'objet.
