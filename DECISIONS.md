@@ -120,6 +120,41 @@
 **Alternatives écartées** — Ajouter l'id dans la classe car inutile dans notre contexte d'utilisation et qui nous force à mettre un Id dans la consttruction d'un mouvement. Sinon l'`owned entity` était une piste mais demandait des requêtes plus complexes qui demandent d'applatir une operation pour trouver ses mouvements, hors on demande tous les mouvements pour trouver un solde par exemple.
 
 **Conséquences** — Je dois documenter car il sera impossible de savoir que les mouvements ont un ID et qu'ils sont pas appelables dans la classe car pas le besoin.
+
+## ADR-012 — Type de compte stocké en chaîne de caractères
+*Date : 2026-09-16 — Statut : acceptée*
+
+**Contexte** — La première migration a mappé TypeCompte en integer : les lignes stockent 0, 1 ou 2, qui sont les valeurs sous-jacentes des membres de l'énumération.
+
+**Décision** — Stocker le nom du membre en chaîne de caractères plutôt que sa valeur numérique.
+
+**Alternatives écartées** — L'entier, qui est le défaut. Écarté parce qu'insérer un membre au milieu de l'énumération décale toutes les valeurs suivantes : les lignes déjà en base changeraient de sens sans qu'aucune ne soit modifiée, ce que l'ADR-004 interdit. Figer explicitement les valeurs numériques réglait ce risque, mais laisse une base que personne ne peut lire sans le code sous les yeux.
+
+**Conséquences** — Le renommage d'un membre devient interdit sans migration de données, alors qu'il était gratuit avec des entiers. On échange « ne jamais réordonner » contre « ne jamais renommer ». En échange, la colonne se lit directement en SQL.
+
+## ADR-013 — Contraintes d'intégrité déclarées côté persistance
+*Date : 2026-09-16 — Statut : acceptée*
+
+**Contexte** — La première migration a révélé deux trous.`CompteId` est une colonne d'entier sans clé étrangère : rien n'empêche un mouvement de désigner un compte inexistant. Et la relation vers `Operation` était facultative : un mouvement orphelin était permis en base, alors que l'invariant central exige que tout mouvement appartienne à une opération dont la somme vaut zéro.
+
+**Décision** — Déclarer les deux contraintes dans `OnModelCreating` : clé étrangère de `Mouvement.CompteId` vers `Comptes`, et relation `Operation` → `Mouvements` obligatoire.
+
+**Alternatives écartées** — Ajouter des propriétés de navigation dans le domaine pour qu'EF déduise les relations tout seul. Écarté : un `OperationId` sur `Mouvement` permettrait de fabriquer un mouvement portant l'identifiant d'une opération arbitraire, c'est-à-dire de recréer l'état illégal que le constructeur d'`Operation` interdit déjà. Le domaine exprime cet invariant mieux qu'un champ ne le ferait.
+
+**Conséquences** — EF ne pouvant rien deviner sans navigation, chaque nouvelle entité imposera de relire cette configuration. En échange le domaine reste sans aucune référence à EF (ADR-005), et la base refuse d'elle-même ce que le domaine refuse déjà — la règle tient même si quelqu'un écrit en SQL direct.
+
+## ADR-014 — Montants à deux décimales
+*Date : 2026-09-16 — Statut : acceptée*
+
+**Contexte** — PostgreSQL a créé `Montant` en `numeric` sans précision. Ce type est exact et à précision arbitraire, donc aucune troncature silencieuse n'est possible et aucun avertissement n'est apparu. La question restait néanmoins ouverte : à partir de quelle unité un montant est-il considéré comme final.
+
+**Décision** — `numeric(19, 2)`. Le CHF se tient au centime.
+
+**Alternatives** écartées — Quatre décimales, usage courant pour absorber les calculs intermédiaires comme les commissions au pourcentage. Écarté parce que l'invariant de l'ADR-002 exige que la somme des mouvements d'une opération vaille exactement zéro : stocker plus fin que l'unité d'arrondi ne supprime pas l'écart, il le déplace dans la base, là où il est le plus difficile à expliquer.
+
+**Conséquences** — L'arrondi doit être tranché avant la création des mouvements, au moment où l'on peut encore décider lequel absorbe la différence. Une commission de 1,5 % sur 33,33 CHF vaut 0,49995 et devra être arrondie par l'appelant, pas par la base.
+
+
 ## Modèle d'entrée
 
 ```markdown
