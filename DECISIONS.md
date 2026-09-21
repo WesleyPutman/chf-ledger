@@ -154,6 +154,16 @@
 
 **Conséquences** — L'arrondi doit être tranché avant la création des mouvements, au moment où l'on peut encore décider lequel absorbe la différence. Une commission de 1,5 % sur 33,33 CHF vaut 0,49995 et devra être arrondie par l'appelant, pas par la base.
 
+## ADR-016 — Le motif est obligatoire
+*Date : 2026-09-21 — Statut : acceptée*
+
+**Contexte** — L'ADR-008 prévoyait un libellé en Code issu d'une liste fermée plus un Detail en texte libre. Ni l'un ni l'autre n'avait été écrit dans le domaine.
+
+**Décision** — Code devient un paramètre du constructeur validant, donc obligatoire : une opération ne peut pas exister sans motif. L'énumération CodeOperation se limite aux motifs du périmètre v1 : Virement, Depot, ContrePassation. Detail est reporté.
+
+**Alternatives écartées** — Code en propriété facultative affectée après construction. Écartée : une propriété d'enum non affectée prend silencieusement le premier membre, donc toute opération mal construite se serait retrouvée étiquetée Virement sans qu'aucune erreur n'apparaisse. Un code de commission a aussi été envisagé puis retiré : dans le modèle, une commission est un mouvement à l'intérieur d'un virement, pas une opération distincte.
+
+**Conséquences** — Ajouter un motif reste gratuit puisque l'enum est stocké en texte (ADR-012), mais en renommer un désaligne les lignes existantes. Tant que Detail n'existe pas, deux opérations de même code sont indistinguables — l'ADR-008 n'est donc honorée qu'à moitié.
 
 ## Modèle d'entrée
 
