@@ -9,6 +9,7 @@ namespace ChfLedger.Api.Data
 		public LedgerDbContext(DbContextOptions<LedgerDbContext> options) : base(options) { }
 		public DbSet<Compte> Comptes {get; set; }
 		public DbSet<Operation> Operations {get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 			{
 				base.OnModelCreating(modelBuilder);
@@ -25,6 +26,8 @@ namespace ChfLedger.Api.Data
 												.WithMany()
 												.HasForeignKey("CompteId")
 												.OnDelete(DeleteBehavior.Restrict);
+				// Conversion de l'enum en String pour éviter les changements de places à l'ajout de nouvelles valeurs.
+				modelBuilder.Entity<Operation>().Property(o => o.Code).HasConversion<string>();
 				// Relation vers Operation obligatoire pour respecter l'invariant.
 				modelBuilder.Entity<Operation>().HasMany(o => o.Mouvements)
 												.WithOne()
