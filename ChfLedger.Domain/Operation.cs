@@ -3,12 +3,13 @@ namespace ChfLedger.Domain;
 public class Operation
 {
     public int Id { get; private set; }
+	public CodeOperation Code { get; private set; }
 	public IReadOnlyList<Mouvement> Mouvements => _mouvements;
 	private readonly List<Mouvement> _mouvements = new();
 	// Constructeur privé dédié à l'usage d'EF afin de ne pas dépendre des Mouvements à la création de l'objet.
 	// Aucun appelant dans la codebase, ne pas supprimer
 	private Operation() { }
-    public Operation(IEnumerable<Mouvement> mouvements)
+    public Operation(IEnumerable<Mouvement> mouvements, CodeOperation code)
     {
         var liste = mouvements.ToList();
         if (liste.Count < 2 )
@@ -18,6 +19,7 @@ public class Operation
             throw new ArgumentException(
                 "La somme des mouvements doit faire 0", nameof(mouvements));
         _mouvements.AddRange(liste);
+        Code = code;
     }
 }
 
