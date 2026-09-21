@@ -1,3 +1,3 @@
 namespace ChfLedger.Domain;
 
-public record Compte(int Id, typeCompte Type);
+public record Compte(int Id, TypeCompte Type);

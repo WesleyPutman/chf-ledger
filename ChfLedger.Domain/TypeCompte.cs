@@ -1,3 +1,3 @@
 namespace ChfLedger.Domain;
 
-public enum typeCompte {Client, Partagé, Entreprise, Caisse, Banque}
+public enum TypeCompte {Client, Partagé, Entreprise, Caisse, Banque}
