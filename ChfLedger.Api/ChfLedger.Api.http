@@ -4,3 +4,36 @@ GET {{ChfLedger.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+### Cas nominal : doit renvoyer 200 avec l'opération créée
+POST {{ChfLedger.Api_HostAddress}}/api/Operations
+Content-Type: application/json
+
+{
+	"mouvements": [
+		{ "compteId": 1, "montant": 100},
+		{ "compteId": 2, "montant": -100}
+	],
+	"code": 1
+}
+### Somme non nulle : doit renvoyer 400 avec un message d'erreur
+POST {{ChfLedger.Api_HostAddress}}/api/Operations
+Content-Type: application/json
+
+{
+	"mouvements": [
+		{ "compteId": 1, "montant": 100},
+		{ "compteId": 2, "montant": -50}
+	],
+	"code": 1
+}
+### Compte inexistant : doit renvoyer 400 avec un message d'erreur
+POST {{ChfLedger.Api_HostAddress}}/api/Operations
+Content-Type: application/json
+
+{
+	"mouvements": [
+		{ "compteId": 1, "montant": 100},
+		{ "compteId": 9999, "montant": -100}
+	],
+	"code": 1
+}
