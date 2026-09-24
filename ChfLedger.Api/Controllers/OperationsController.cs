@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ChfLedger.Api.Dtos;
 using ChfLedger.Domain;
 using ChfLedger.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChfLedger.Api.Controllers;
 
@@ -21,6 +22,17 @@ public class OperationsController : ControllerBase
 		var operation = new Operation(nouvelleOperation.Mouvements.Select(m => new Mouvement(m.CompteId, m.Montant)), nouvelleOperation.Code);
 		_context.Operations.Add(operation);
 		await _context.SaveChangesAsync();
-		return new OperationEnregistree(operation.Id, operation.Mouvements.Select(m => new MouvementEnregistre( m.CompteId, m.Montant)).ToList(), operation.Code);
+		var reponse = new OperationEnregistree(operation.Id, operation.Mouvements.Select(m => new MouvementEnregistre(m.CompteId, m.Montant)).ToList(), operation.Code);
+		return CreatedAtAction(nameof(Obtenir), new { id = operation.Id }, reponse);
+	}
+	[HttpGet("{id}")]
+	public async Task<ActionResult<OperationEnregistree>> Obtenir(int id)
+	{
+		var operation = await _context.Operations.Include(o => o.Mouvements).FirstOrDefaultAsync(o => o.Id == id);
+		if (operation == null)
+		{
+			return NotFound();
+		}
+		return new OperationEnregistree(operation.Id, operation.Mouvements.Select(m => new MouvementEnregistre(m.CompteId, m.Montant)).ToList(), operation.Code);
 	}
 }
