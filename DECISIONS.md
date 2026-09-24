@@ -165,6 +165,28 @@
 
 **Conséquences** — Ajouter un motif reste gratuit puisque l'enum est stocké en texte (ADR-012), mais en renommer un désaligne les lignes existantes. Tant que Detail n'existe pas, deux opérations de même code sont indistinguables — l'ADR-008 n'est donc honorée qu'à moitié.
 
+## ADR-017 — Un seul gestionnaire d'exceptions global pour traduire les erreurs en 400
+*Date : 2026-09-24 — Statut : acceptée*
+
+**Contexte** — Une opération invalide (constructeur d'`Operation`, `ArgumentException`) ou un compte inexistant (clé étrangère de l'ADR-013 violée à l'écriture, `DbUpdateException`) remontaient tels quels jusqu'ici et se traduisaient en 500 côté client, sans aucune indication que la faute venait de la requête envoyée plutôt que d'un incident serveur.
+
+**Décision** — Un unique gestionnaire (`IExceptionHandler`, enregistré via `AddExceptionHandler`) qui distingue `ArgumentException` et `DbUpdateException` avec `is` à l'intérieur d'une seule méthode `TryHandleAsync`, et les traduit toutes les deux en 400 avec un corps `ProblemDetails` (activé par `AddProblemDetails`).
+
+**Alternatives écartées** — Un gestionnaire par type d'exception : écarté, `TryHandleAsync` reçoit déjà le type de base `Exception`, rien n'empêche de distinguer plusieurs cas dans une seule classe, et multiplier les fichiers n'apporterait rien à cette échelle. Ne rien gérer et laisser remonter les erreurs : écarté, un 500 ne dit rien au client sur l'origine du problème, alors qu'un 400 signale explicitement une faute de la requête.
+
+**Conséquences** — `DbUpdateException` couvre n'importe quel échec d'écriture, pas seulement une clé étrangère absente (une contrainte d'unicité future emprunterait le même chemin) ; son message reste générique côté client (« An error occurred while saving the entity changes... »), le détail précis vit dans `InnerException`, non exploité pour l'instant. Distinguer plus finement les causes d'échec d'écriture exigera d'aller lire ce détail.
+
+## ADR-018 — 201 et Location à la création d'une opération
+*Date : 2026-09-24 — Statut : acceptée*
+
+**Contexte** — `POST /api/Operations` renvoyait 200 avec le corps de l'opération créée, en attendant qu'un endpoint de lecture existe pour donner un sens à un 201.
+
+**Décision** — Une fois `GET /api/Operations/{id}` écrit, `Creer` renvoie `CreatedAtAction(nameof(Obtenir), new { id = operation.Id }, reponse)` : un 201 avec un en-tête `Location` calculé automatiquement à partir de la route déclarée sur `Obtenir`.
+
+**Alternatives écartées** — Construire l'URL de `Location` à la main (`$"/api/Operations/{operation.Id}"`) : écarté, ça duplique la route déjà déclarée sur `Obtenir`, et une modification de cette route désynchroniserait silencieusement les deux. Garder 200 : écarté, la convention REST réserve 201 aux créations — un 200 cache l'information que la requête a produit une nouvelle ressource, pas juste renvoyé un résultat.
+
+**Conséquences** — `Creer` dépend maintenant du nom et de la route de `Obtenir` : un renommage de l'action est répercuté automatiquement par `nameof`, mais supprimer ou changer sa route casse `Creer` si on ne pense pas à vérifier. Même compromis que l'ADR-005 côté couplage, cette fois entre deux endpoints du même contrôleur.
+
 ## Modèle d'entrée
 
 ```markdown
