@@ -37,3 +37,8 @@ Content-Type: application/json
 	],
 	"code": 1
 }
+
+### Obtenir une opération et ses mouvements via son id : doit renvoyer 200 avec l'opération et ses mouvements
+GET {{ChfLedger.Api_HostAddress}}/api/Operations/1
+### Obtenir une opération et ses mouvements via son id : doit renvoyer 404 si l'opération n'existe pas
+GET {{ChfLedger.Api_HostAddress}}/api/Operations/999
