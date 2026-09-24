@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    container_name: chfledger-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ChfLedgerDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - chfledger-db-data:/var/lib/postgresql/data
+volumes:
+  chfledger-db-data:
